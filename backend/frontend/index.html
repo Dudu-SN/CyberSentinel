@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CyberSentinel V3 | Security Operations Dashboard</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+    --bg:#060914;
+    --panel:#0b1120;
+    --panel2:#0e1628;
+    --border:#1b2940;
+    --text:#edf4ff;
+    --muted:#8290a8;
+    --accent:#657cff;
+    --green:#35d49a;
+    --yellow:#e8c85b;
+    --orange:#ff9b55;
+    --red:#ff6077;
+}
+
+body{
+    background:
+        radial-gradient(circle at 80% 0%,rgba(101,124,255,.10),transparent 30%),
+        var(--bg);
+    color:var(--text);
+    font-family:Inter,Segoe UI,Arial,sans-serif;
+    min-height:100vh;
+}
+
+button,input{font:inherit}
+
+.app{
+    display:flex;
+    min-height:100vh;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+    width:245px;
+    border-right:1px solid var(--border);
+    background:#080d19;
+    padding:24px 16px;
+    position:fixed;
+    left:0;
+    top:0;
+    bottom:0;
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:8px 10px 30px;
+}
+
+.logo-icon{
+    width:40px;
+    height:40px;
+    border:1px solid #2a3a5c;
+    background:#101a30;
+    border-radius:12px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:21px;
+}
+
+.logo strong{
+    display:block;
+    font-size:16px;
+}
+
+.logo small{
+    color:var(--muted);
+    font-size:10px;
+}
+
+.nav-title{
+    color:#53627b;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:1.5px;
+    margin:12px 12px;
+}
+
+.nav-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px;
+    margin:4px 0;
+    border-radius:10px;
+    color:#8996ad;
+    font-size:13px;
+}
+
+.nav-item.active{
+    color:#fff;
+    background:#121c31;
+    border:1px solid #20304c;
+}
+
+.sidebar-bottom{
+    position:absolute;
+    bottom:22px;
+    left:16px;
+    right:16px;
+}
+
+.api-status{
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:13px;
+    font-size:11px;
+    color:var(--muted);
+}
+
+.status-dot{
+    width:7px;
+    height:7px;
+    display:inline-block;
+    border-radius:50%;
+    background:var(--green);
+    margin-right:7px;
+    box-shadow:0 0 10px var(--green);
+}
+
+/* MAIN */
+
+.main{
+    margin-left:245px;
+    width:calc(100% - 245px);
+}
+
+.topbar{
+    height:70px;
+    border-bottom:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 30px;
+    background:rgba(6,9,20,.75);
+}
+
+.topbar-title{
+    font-size:14px;
+    color:#9aa8bf;
+}
+
+.topbar-right{
+    display:flex;
+    align-items:center;
+    gap:15px;
+}
+
+.version{
+    color:#64728a;
+    font-size:11px;
+}
+
+.live{
+    font-size:11px;
+    color:var(--green);
+    border:1px solid #164a3a;
+    background:#0a211a;
+    border-radius:20px;
+    padding:6px 10px;
+}
+
+.content{
+    padding:30px;
+    max-width:1500px;
+    margin:auto;
+}
+
+/* HERO */
+
+.hero{
+    border:1px solid var(--border);
+    background:linear-gradient(135deg,#0d1527,#0a101d);
+    border-radius:18px;
+    padding:28px;
+    margin-bottom:20px;
+}
+
+.hero h1{
+    font-size:27px;
+    margin-bottom:7px;
+}
+
+.hero p{
+    color:var(--muted);
+    font-size:13px;
+}
+
+.scan-row{
+    display:flex;
+    gap:10px;
+    margin-top:22px;
+}
+
+.url-input{
+    flex:1;
+    min-width:0;
+    border:1px solid #263753;
+    background:#070c17;
+    color:white;
+    border-radius:10px;
+    padding:14px 16px;
+    outline:none;
+}
+
+.url-input:focus{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(101,124,255,.08);
+}
+
+.scan-btn{
+    border:0;
+    background:var(--accent);
+    color:white;
+    padding:0 25px;
+    border-radius:10px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.scan-btn:hover{
+    filter:brightness(1.08);
+}
+
+.scan-btn:disabled{
+    opacity:.55;
+    cursor:wait;
+}
+
+.loading{
+    display:none;
+    margin-top:13px;
+    color:#8d9bb4;
+    font-size:12px;
+}
+
+.error{
+    display:none;
+    margin-top:14px;
+    padding:12px;
+    border:1px solid #63303a;
+    background:#29131a;
+    color:#ff9eaa;
+    border-radius:10px;
+    font-size:12px;
+}
+
+/* DASHBOARD */
+
+#dashboard{
+    display:none;
+}
+
+.cards{
+    display:grid;
+    grid-template-columns:1.35fr 1fr 1fr 1fr;
+    gap:15px;
+    margin-bottom:15px;
+}
+
+.card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:15px;
+    padding:20px;
+}
+
+.card-label{
+    color:#718099;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    font-size:9px;
+    font-weight:700;
+    margin-bottom:12px;
+}
+
+.big{
+    font-size:25px;
+    font-weight:800;
+}
+
+.small{
+    color:var(--muted);
+    font-size:11px;
+    margin-top:5px;
+}
+
+/* SCORE */
+
+.score-card{
+    grid-row:span 2;
+    min-height:245px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+}
+
+.gauge{
+    width:145px;
+    height:145px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:conic-gradient(var(--accent) 0deg,#1a263b 0deg);
+    position:relative;
+    margin-bottom:12px;
+}
+
+.gauge:after{
+    content:"";
+    position:absolute;
+    inset:11px;
+    border-radius:50%;
+    background:var(--panel);
+}
+
+.gauge-inner{
+    position:relative;
+    z-index:2;
+    text-align:center;
+}
+
+.score{
+    font-size:39px;
+    font-weight:900;
+}
+
+.score-sub{
+    color:#68768d;
+    font-size:10px;
+}
+
+/* RISK */
+
+.risk{
+    display:inline-block;
+    padding:6px 12px;
+    border-radius:20px;
+    font-size:10px;
+    font-weight:800;
+}
+
+.low{background:#0b3025;color:#55dfaa}
+.moderate{background:#332d0e;color:#eed15d}
+.high{background:#3b2112;color:#ff9d58}
+.critical{background:#3a151d;color:#ff667c}
+
+/* SECTION */
+
+.section{
+    margin-top:15px;
+}
+
+.section-title{
+    font-size:15px;
+    font-weight:700;
+    margin-bottom:11px;
+}
+
+.two-col{
+    display:grid;
+    grid-template-columns:1.4fr 1fr;
+    gap:15px;
+}
+
+/* FINDINGS */
+
+.finding{
+    display:flex;
+    gap:13px;
+    border-bottom:1px solid #172338;
+    padding:14px 0;
+}
+
+.finding:last-child{
+    border-bottom:0;
+}
+
+.severity{
+    min-width:65px;
+    height:max-content;
+    text-align:center;
+    padding:5px;
+    border-radius:5px;
+    font-size:8px;
+    font-weight:800;
+}
+
+.s-critical{background:#43151e;color:#ff7184}
+.s-high{background:#412414;color:#ffa15e}
+.s-medium{background:#392f0e;color:#efd263}
+.s-low{background:#102d25;color:#5dddb0}
+
+.finding h4{
+    font-size:12px;
+    margin-bottom:4px;
+}
+
+.finding p{
+    color:#77859c;
+    font-size:11px;
+    line-height:1.5;
+}
+
+/* HEADER MATRIX */
+
+.matrix{
+    display:grid;
+    grid-template-columns:1fr 100px;
+}
+
+.matrix-row{
+    display:contents;
+}
+
+.matrix-row > div{
+    border-bottom:1px solid #172338;
+    padding:11px 0;
+    font-size:11px;
+}
+
+.matrix-row > div:last-child{
+    text-align:right;
+}
+
+.present{
+    color:var(--green);
+}
+
+.missing{
+    color:var(--red);
+}
+
+/* INFO */
+
+.info-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:15px;
+}
+
+.info-row{
+    display:flex;
+    justify-content:space-between;
+    gap:15px;
+    padding:10px 0;
+    border-bottom:1px solid #172338;
+    font-size:11px;
+}
+
+.info-row:last-child{
+    border-bottom:0;
+}
+
+.info-row span:first-child{
+    color:#708097;
+}
+
+.info-row span:last-child{
+    text-align:right;
+    max-width:65%;
+    word-break:break-word;
+}
+
+/* EMPTY */
+
+.empty{
+    color:#748299;
+    font-size:12px;
+    padding:15px 0;
+}
+
+/* FOOTER */
+
+footer{
+    text-align:center;
+    color:#4d5b72;
+    font-size:10px;
+    padding:30px;
+}
+
+/* MOBILE */
+
+@media(max-width:1050px){
+
+    .cards{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .score-card{
+        grid-row:auto;
+    }
+
+    .two-col,
+    .info-grid{
+        grid-template-columns:1fr;
+    }
+}
+
+@media(max-width:720px){
+
+    .sidebar{
+        display:none;
+    }
+
+    .main{
+        margin-left:0;
+        width:100%;
+    }
+
+    .content{
+        padding:15px;
+    }
+
+    .topbar{
+        padding:0 15px;
+    }
+
+    .cards{
+        grid-template-columns:1fr;
+    }
+
+    .scan-row{
+        flex-direction:column;
+    }
+
+    .scan-btn{
+        height:48px;
+    }
+
+    .hero h1{
+        font-size:22px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<!-- SIDEBAR -->
+
+<aside class="sidebar">
+
+    <div class="logo">
+        <div class="logo-icon">🛡️</div>
+        <div>
+            <strong>CyberSentinel</strong>
+            <small>SECURITY PLATFORM</small>
+        </div>
+    </div>
+
+    <div class="nav-title">MONITORING</div>
+
+    <div class="nav-item active">
+        ◉
+        <span>Security Overview</span>
+    </div>
+
+    <div class="nav-item">
+        ◇
+        <span>Security Findings</span>
+    </div>
+
+    <div class="nav-item">
+        ◌
+        <span>TLS Intelligence</span>
+    </div>
+
+    <div class="nav-item">
+        ◈
+        <span>DNS Intelligence</span>
+    </div>
+
+    <div class="nav-title">TOOLS</div>
+
+    <div class="nav-item">
+        ▣
+        <span>Reports</span>
+    </div>
+
+    <div class="nav-item">
+        ⚙
+        <span>Configuration</span>
+    </div>
+
+    <div class="sidebar-bottom">
+
+        <div class="api-status">
+            <span class="status-dot"></span>
+            API ONLINE
+            <br>
+            <span style="margin-left:14px">
+                127.0.0.1:8000
+            </span>
+        </div>
+
+    </div>
+
+</aside>
+
+
+<!-- MAIN -->
+
+<main class="main">
+
+<header class="topbar">
+
+    <div class="topbar-title">
+        Security Operations Center / Overview
+    </div>
+
+    <div class="topbar-right">
+        <span class="version">V3.0.0</span>
+        <span class="live">● SYSTEM ONLINE</span>
+    </div>
+
+</header>
+
+
+<div class="content">
+
+<!-- HERO -->
+
+<section class="hero">
+
+    <h1>Website Security Posture Monitor</h1>
+
+    <p>
+        Defensive analysis of publicly accessible website
+        security configuration and transport posture.
+    </p>
+
+    <div class="scan-row">
+
+        <input
+            id="urlInput"
+            class="url-input"
+            type="url"
+            value="https://example.com"
+            placeholder="https://example.com"
+        >
+
+        <button
+            id="scanButton"
+            class="scan-btn"
+            onclick="startScan()"
+        >
+            RUN SECURITY SCAN
+        </button>
+
+    </div>
+
+    <div id="loading" class="loading">
+        ◌ Running authorised defensive security checks...
+    </div>
+
+    <div id="errorBox" class="error"></div>
+
+</section>
+
+
+<!-- DASHBOARD -->
+
+<section id="dashboard">
+
+
+<!-- TOP CARDS -->
+
+<div class="cards">
+
+    <div class="card score-card">
+
+        <div id="gauge" class="gauge">
+
+            <div class="gauge-inner">
+
+                <div id="score" class="score">
+                    --
+                </div>
+
+                <div class="score-sub">
+                    SECURITY SCORE
+                </div>
+
+            </div>
+
+        </div>
+
+        <div id="riskBadge"></div>
+
+    </div>
+
+
+    <div class="card">
+
+        <div class="card-label">
+            HTTP Status
+        </div>
+
+        <div id="httpStatus" class="big">
+            --
+        </div>
+
+        <div class="small">
+            Target response
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <div class="card-label">
+            Findings
+        </div>
+
+        <div id="findingCount" class="big">
+            --
+        </div>
+
+        <div class="small">
+            Detected observations
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <div class="card-label">
+            TLS Protocol
+        </div>
+
+        <div id="tlsVersion" class="big">
+            --
+        </div>
+
+        <div class="small">
+            Transport encryption
+        </div>
+
+    </div>
+
+
+    <div class="card">
+
+        <div class="card-label">
+            Target
+        </div>
+
+        <div id="targetShort" class="big"
+             style="font-size:15px;word-break:break-word">
+            --
+        </div>
+
+        <div class="small">
+            Analysed hostname
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- FINDINGS + HEADERS -->
+
+<div class="two-col section">
+
+    <div class="card">
+
+        <div class="section-title">
+            Security Findings
+        </div>
+
+        <div id="findingsList"></div>
+
+    </div>
+
+
+    <div class="card">
+
+        <div class="section-title">
+            Security Header Matrix
+        </div>
+
+        <div id="headerMatrix" class="matrix"></div>
+
+    </div>
+
+</div>
+
+
+<!-- INFO -->
+
+<div class="info-grid section">
+
+
+    <!-- TARGET -->
+
+    <div class="card">
+
+        <div class="section-title">
+            Target Intelligence
+        </div>
+
+        <div class="info-row">
+            <span>Hostname</span>
+            <span id="hostname">N/A</span>
+        </div>
+
+        <div class="info-row">
+            <span>Final URL</span>
+            <span id="finalUrl">N/A</span>
+        </div>
+
+        <div class="info-row">
+            <span>HTTP Version</span>
+            <span id="httpVersion">N/A</span>
+        </div>
+
+        <div class="info-row">
+            <span>Content Type</span>
+            <span id="contentType">N/A</span>
+        </div>
+
+    </div>
+
+
+    <!-- TLS -->
+
+    <div class="card">
+
+        <div class="section-title">
+            TLS Intelligence
+        </div>
+
+        <div class="info-row">
+            <span>Available</span>
+            <span id="tlsAvailable">N/A</span>
+        </div>
+
+        <div class="info-row">
+            <span>Version</span>
+            <span id="tlsFullVersion">N/A</span>
+        </div>
+
+        <div class="info-row">
+            <span>Cipher</span>
+            <span id="tlsCipher">N/A</span>
+        </div>
+
+        <div class="info-row">
+            <span>Certificate</span>
+            <span id="certificate">N/A</span>
+        </div>
+
+        <div class="info-row">
+            <span>Expiry</span>
+            <span id="expiry">N/A</span>
+        </div>
+
+    </div>
+
+
+    <!-- DNS -->
+
+    <div class="card">
+
+        <div class="section-title">
+            DNS Intelligence
+        </div>
+
+        <div class="info-row">
+            <span>A</span>
+            <span id="dnsA">N/A</span>
+        </div>
+
+        <div class="info-row">
+            <span>AAAA</span>
+            <span id="dnsAAAA">N/A</span>
+        </div>
+
+        <div class="info-row">
+            <span>CNAME</span>
+            <span id="dnsCNAME">N/A</span>
+        </div>
+
+        <div class="info-row">
+            <span>MX</span>
+            <span id="dnsMX">N/A</span>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- TECHNOLOGY -->
+
+<div class="card section">
+
+    <div class="section-title">
+        Technology Exposure
+    </div>
+
+    <div class="info-grid">
+
+        <div class="info-row">
+            <span>Server</span>
+            <span id="server">N/A</span>
+        </div>
+
+        <div class="info-row">
+            <span>X-Powered-By</span>
+            <span id="poweredBy">N/A</span>
+        </div>
+
+        <div class="info-row">
+            <span>Resolved IPs</span>
+            <span id="resolvedIPs">N/A</span>
+        </div>
+
+    </div>
+
+</div>
+
+
+</section>
+
+</div>
+
+
+<footer>
+    CyberSentinel V3 • Defensive Security Posture Monitoring
+</footer>
+
+</main>
+
+</div>
+
+
+<script>
+
+/* ============================================================
+   CONFIG
+============================================================ */
+
+const API_URL = "http://127.0.0.1:8000";
+
+
+/* ============================================================
+   HELPERS
+============================================================ */
+
+function safe(value){
+
+    if(
+        value === undefined ||
+        value === null ||
+        value === ""
+    ){
+        return "N/A";
+    }
+
+    return String(value);
+}
+
+
+function escapeHTML(value){
+
+    return String(value)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+}
+
+
+function valuesToText(values){
+
+    if(!Array.isArray(values) || !values.length){
+        return "N/A";
+    }
+
+    return values.map(v => {
+
+        if(typeof v === "object"){
+            return JSON.stringify(v);
+        }
+
+        return String(v);
+
+    }).join(", ");
+}
+
+
+/* ============================================================
+   SCAN
+============================================================ */
+
+async function startScan(){
+
+    const input =
+        document.getElementById("urlInput");
+
+    const button =
+        document.getElementById("scanButton");
+
+    const loading =
+        document.getElementById("loading");
+
+    const error =
+        document.getElementById("errorBox");
+
+    const dashboard =
+        document.getElementById("dashboard");
+
+
+    const url =
+        input.value.trim();
+
+
+    error.style.display = "none";
+    error.textContent = "";
+
+
+    if(!url){
+
+        showError(
+            "Please enter an authorised website URL."
+        );
+
+        return;
+    }
+
+
+    try{
+        new URL(url);
+    }
+    catch{
+
+        showError(
+            "Invalid URL. Example: https://example.com"
+        );
+
+        return;
+    }
+
+
+    button.disabled = true;
+    button.textContent = "SCANNING...";
+    loading.style.display = "block";
+    dashboard.style.display = "none";
+
+
+    try{
+
+        const response =
+            await fetch(
+                `${API_URL}/scan`,
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:JSON.stringify({
+                        url:url
+                    })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if(!response.ok){
+
+            throw new Error(
+                data.detail ||
+                "Security scan failed."
+            );
+        }
+
+
+        render(data);
+
+    }
+    catch(err){
+
+        showError(
+            err.message ||
+            "Could not connect to CyberSentinel API."
+        );
+
+    }
+    finally{
+
+        button.disabled = false;
+        button.textContent = "RUN SECURITY SCAN";
+        loading.style.display = "none";
+    }
+}
+
+
+/* ============================================================
+   RENDER
+============================================================ */
+
+function render(data){
+
+    document.getElementById(
+        "dashboard"
+    ).style.display = "block";
+
+
+    const security =
+        data.security || {};
+
+    const tls =
+        data.tls || {};
+
+    const dns =
+        data.dns || {};
+
+
+    /* SCORE */
+
+    const score =
+        Number(
+            security.security_score || 0
+        );
+
+
+    document.getElementById(
+        "score"
+    ).textContent = score;
+
+
+    const degrees =
+        Math.max(
+            0,
+            Math.min(
+                360,
+                score * 3.6
+            )
+        );
+
+
+    document.getElementById(
+        "gauge"
+    ).style.background = `
+        conic-gradient(
+            var(--accent) 0deg,
+            var(--accent) ${degrees}deg,
+            #1a263b ${degrees}deg,
+            #1a263b 360deg
+        )
+    `;
+
+
+    /* RISK */
+
+    const risk =
+        safe(
+            security.risk_level
+        );
+
+
+    let riskClass =
+        "critical";
+
+
+    if(risk === "LOW"){
+        riskClass = "low";
+    }
+    else if(risk === "MODERATE"){
+        riskClass = "moderate";
+    }
+    else if(risk === "HIGH"){
+        riskClass = "high";
+    }
+
+
+    document.getElementById(
+        "riskBadge"
+    ).innerHTML = `
+        <span class="risk ${riskClass}">
+            ${escapeHTML(risk)}
+        </span>
+    `;
+
+
+    /* BASIC */
+
+    document.getElementById(
+        "httpStatus"
+    ).textContent =
+        safe(
+            data.http?.status_code
+        );
+
+
+    document.getElementById(
+        "findingCount"
+    ).textContent =
+        safe(
+            security.findings_count
+        );
+
+
+    document.getElementById(
+        "tlsVersion"
+    ).textContent =
+        safe(
+            tls.version
+        );
+
+
+    document.getElementById(
+        "targetShort"
+    ).textContent =
+        safe(
+            data.hostname
+        );
+
+
+    /* TARGET */
+
+    document.getElementById(
+        "hostname"
+    ).textContent =
+        safe(data.hostname);
+
+
+    document.getElementById(
+        "finalUrl"
+    ).textContent =
+        safe(data.final_url);
+
+
+    document.getElementById(
+        "httpVersion"
+    ).textContent =
+        safe(
+            data.http?.http_version
+        );
+
+
+    document.getElementById(
+        "contentType"
+    ).textContent =
+        safe(
+            data.http?.content_type
+        );
+
+
+    /* TLS */
+
+    document.getElementById(
+        "tlsAvailable"
+    ).textContent =
+        tls.available
+            ? "YES"
+            : "NO";
+
+
+    document.getElementById(
+        "tlsFullVersion"
+    ).textContent =
+        safe(tls.version);
+
+
+    document.getElementById(
+        "tlsCipher"
+    ).textContent =
+        safe(tls.cipher);
+
+
+    document.getElementById(
+        "certificate"
+    ).textContent =
+        safe(
+            tls.certificate_subject
+        );
+
+
+    document.getElementById(
+        "expiry"
+    ).textContent =
+        safe(
+            tls.certificate_expires
+        );
+
+
+    /* DNS */
+
+    document.getElementById(
+        "dnsA"
+    ).textContent =
+        valuesToText(
+            dns.A_records
+        );
+
+
+    document.getElementById(
+        "dnsAAAA"
+    ).textContent =
+        valuesToText(
+            dns.AAAA_records
+        );
+
+
+    document.getElementById(
+        "dnsCNAME"
+    ).textContent =
+        valuesToText(
+            dns.CNAME_records
+        );
+
+
+    document.getElementById(
+        "dnsMX"
+    ).textContent =
+        valuesToText(
+            dns.MX_records
+        );
+
+
+    /* TECHNOLOGY */
+
+    document.getElementById(
+        "server"
+    ).textContent =
+        safe(
+            data.technology?.server
+        );
+
+
+    document.getElementById(
+        "poweredBy"
+    ).textContent =
+        safe(
+            data.technology?.x_powered_by
+        );
+
+
+    document.getElementById(
+        "resolvedIPs"
+    ).textContent =
+        valuesToText(
+            data.resolved_addresses
+        );
+
+
+    /* FINDINGS */
+
+    renderFindings(
+        security.findings || []
+    );
+
+
+    /* HEADERS */
+
+    renderHeaders(
+        security.present_security_headers || []
+    );
+
+
+    dashboard.scrollIntoView({
+        behavior:"smooth"
+    });
+}
+
+
+/* ============================================================
+   FINDINGS
+============================================================ */
+
+function renderFindings(findings){
+
+    const box =
+        document.getElementById(
+            "findingsList"
+        );
+
+
+    if(!findings.length){
+
+        box.innerHTML = `
+            <div class="empty">
+                ✓ No findings detected by the
+                current security checks.
+            </div>
+        `;
+
+        return;
+    }
+
+
+    box.innerHTML =
+        findings.map(f => {
+
+            const severity =
+                safe(
+                    f.severity
+                ).toLowerCase();
+
+
+            const className =
+                severity === "critical"
+                    ? "s-critical"
+                    : severity === "high"
+                    ? "s-high"
+                    : severity === "medium"
+                    ? "s-medium"
+                    : "s-low";
+
+
+            return `
+                <div class="finding">
+
+                    <div class="severity ${className}">
+                        ${escapeHTML(severity)}
+                    </div>
+
+                    <div>
+
+                        <h4>
+                            ${escapeHTML(
+                                safe(f.title)
+                            )}
+                        </h4>
+
+                        <p>
+                            ${escapeHTML(
+                                safe(f.advice)
+                            )}
+                        </p>
+
+                    </div>
+
+                </div>
+            `;
+
+        }).join("");
+}
+
+
+/* ============================================================
+   SECURITY HEADER MATRIX
+============================================================ */
+
+const HEADER_NAMES = [
+    "Content-Security-Policy",
+    "Strict-Transport-Security",
+    "X-Content-Type-Options",
+    "Referrer-Policy",
+    "Permissions-Policy",
+    "X-Frame-Options"
+];
+
+
+function renderHeaders(present){
+
+    const box =
+        document.getElementById(
+            "headerMatrix"
+        );
+
+
+    box.innerHTML =
+        HEADER_NAMES.map(name => {
+
+            const exists =
+                present.some(
+                    item =>
+                        item.toLowerCase() ===
+                        name.toLowerCase()
+                );
+
+
+            return `
+                <div class="matrix-row">
+
+                    <div>
+                        ${escapeHTML(name)}
+                    </div>
+
+                    <div class="${
+                        exists
+                            ? "present"
+                            : "missing"
+                    }">
+
+                        ${
+                            exists
+                                ? "✓ PRESENT"
+                                : "✕ MISSING"
+                        }
+
+                    </div>
+
+                </div>
+            `;
+
+        }).join("");
+}
+
+
+/* ============================================================
+   ERROR
+============================================================ */
+
+function showError(message){
+
+    const box =
+        document.getElementById(
+            "errorBox"
+        );
+
+    box.textContent =
+        message;
+
+    box.style.display =
+        "block";
+}
+
+
+/* ============================================================
+   ENTER KEY
+============================================================ */
+
+document
+    .getElementById("urlInput")
+    .addEventListener(
+        "keydown",
+        event => {
+
+            if(event.key === "Enter"){
+                startScan();
+            }
+
+        }
+    );
+
+</script>
+
+</body>
+</html>
